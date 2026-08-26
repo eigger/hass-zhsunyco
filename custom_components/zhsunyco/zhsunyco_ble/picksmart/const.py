@@ -1,0 +1,20 @@
+"""Constants for PickSmart (gicisky) ESL BLE protocol."""
+
+from __future__ import annotations
+
+MANUFACTURER_ID = 20563  # 0x5053
+
+SERVICE_UUID_PREFIX = "0000f"
+SERVICE_UUIDS = (
+    "0000fef0-0000-1000-8000-00805f9b34fb",
+    "0000fdf0-0000-1000-8000-00805f9b34fb",
+    "0000fcf0-0000-1000-8000-00805f9b34fb",
+)
+
+CMD_START = 0x01
+CMD_SIZE = 0x02
+CMD_IMAGE = 0x03
+RESP_IMAGE_DATA = 0x05
+
+CONNECT_TIMEOUT = 30.0
+FEEDBACK_TIMEOUT = 10.0

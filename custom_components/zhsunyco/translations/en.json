@@ -1,0 +1,125 @@
+{
+  "services": {
+    "write": {
+      "name": "Write Label",
+      "description": "Write a label image to a Zhsunyco device.",
+      "fields": {
+        "payload": {
+          "name": "Payload",
+          "description": "Payload describing what to draw."
+        },
+        "rotate": {
+          "name": "Rotate",
+          "description": "Label rotation in degrees (0, 90, 180, 270). Default: 0."
+        },
+        "background": {
+          "name": "Background",
+          "description": "Background color (white, black, red, yellow). Default: white."
+        },
+        "dry_run": {
+          "name": "Dry Run",
+          "description": "Generate the image without sending it to the device."
+        }
+      }
+    },
+    "write_guarded": {
+      "name": "Write Guarded Label",
+      "description": "Write a label image with guards applied (duplicate, write lock, debounce).",
+      "fields": {
+        "payload": {
+          "name": "Payload",
+          "description": "Payload describing what to draw."
+        },
+        "rotate": {
+          "name": "Rotate",
+          "description": "Label rotation in degrees (0, 90, 180, 270). Default: 0."
+        },
+        "background": {
+          "name": "Background",
+          "description": "Background color (white, black, red, yellow). Default: white."
+        },
+        "dry_run": {
+          "name": "Dry Run",
+          "description": "Generate the image without sending it to the device."
+        },
+        "debounce_override_ms": {
+          "name": "Debounce Override",
+          "description": "Override the configured debounce delay for this call (0 = immediate)."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": { "name": "Battery" },
+      "battery_voltage": { "name": "Battery Voltage" },
+      "temperature": { "name": "Temperature" },
+      "write_duration": { "name": "Write Duration" },
+      "failure_count": { "name": "Failure Count" },
+      "last_failure_time": { "name": "Last Failure Time" }
+    },
+    "binary_sensor": {
+      "connectivity": { "name": "Connectivity" },
+      "display_in_sync": { "name": "Display In Sync" }
+    },
+    "image": {
+      "last_updated_content": { "name": "Last Updated Content" },
+      "preview_content": { "name": "Preview Content" }
+    },
+    "text": {
+      "alias": { "name": "Alias" }
+    },
+    "switch": {
+      "write_lock": { "name": "Write Lock" }
+    }
+  },
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "description": "Select a device to configure.",
+        "data": {
+          "address": "Device"
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Do you want to set up this device?"
+      },
+      "model": {
+        "title": "Select Tag Model",
+        "description": "Select the ESL tag model and display resolution.",
+        "data": {
+          "model": "Model"
+        }
+      }
+    },
+    "abort": {
+      "not_supported": "This device is not supported.",
+      "no_devices_found": "No unconfigured devices found.",
+      "already_in_progress": "Configuration flow is already in progress.",
+      "already_configured": "Device is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zhsunyco Options",
+        "description": "Adjust tag model resolution and write settings.",
+        "data": {
+          "model": "Model",
+          "retry_count": "Retry Count",
+          "write_delay_ms": "Write Delay (ms)",
+          "prevent_duplicate_send": "Prevent Duplicate Send",
+          "debounce_ms": "Debounce Delay (ms)"
+        },
+        "data_description": {
+          "model": "ESL display resolution and model type.",
+          "retry_count": "Number of times to retry writing to the device before giving up.",
+          "write_delay_ms": "Delay between each chunk written to the device. Increase if writes are unreliable.",
+          "prevent_duplicate_send": "Skip writing when the new image is identical to the last one sent.",
+          "debounce_ms": "Delay before writing to device. New writes cancel pending ones. 0 = disabled (immediate write)."
+        }
+      }
+    }
+  }
+}

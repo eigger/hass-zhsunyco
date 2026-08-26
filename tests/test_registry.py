@@ -1,0 +1,129 @@
+"""Tests for protocol registry, lookup, and mutual exclusivity detection."""
+
+from __future__ import annotations
+
+from unittest.mock import MagicMock
+import pytest
+
+from custom_components.zhsunyco import zhsunyco_ble
+from custom_components.zhsunyco.zhsunyco_ble.base import Capabilities, BleBackend
+from custom_components.zhsunyco.zhsunyco_ble.easytag.const import (
+    SERVICE_UUID as EASYTAG_SERVICE_UUID,
+)
+from custom_components.zhsunyco.zhsunyco_ble.picksmart.const import (
+    MANUFACTURER_ID as PICKSMART_MFR_ID,
+    SERVICE_UUIDS as PICKSMART_SERVICE_UUIDS,
+)
+from custom_components.zhsunyco.zhsunyco_ble.wolink.const import (
+    MANUFACTURER_ID as WOLINK_MFR_ID,
+    SERVICE_UUID as WOLINK_SERVICE_UUID,
+)
+
+
+def test_registry_get():
+    """Verify backend retrieval by protocol ID."""
+    assert zhsunyco_ble.get("wolink").id == "wolink"
+    assert zhsunyco_ble.get("easytag").id == "easytag"
+    assert zhsunyco_ble.get("picksmart").id == "picksmart"
+
+    with pytest.raises(KeyError, match="Unknown BLE backend: 'unknown'"):
+        zhsunyco_ble.get("unknown")
+
+
+def test_registry_all_backends():
+    """Verify all_backends lists registered backends."""
+    backend_ids = [b.id for b in zhsunyco_ble.all_backends()]
+    assert "wolink" in backend_ids
+    assert "easytag" in backend_ids
+    assert "picksmart" in backend_ids
+
+
+def test_registry_detect_mutual_exclusivity():
+    """Verify 3 protocols are strictly mutually exclusive during advertisement detection."""
+    wolink_backend = zhsunyco_ble.get("wolink")
+    easytag_backend = zhsunyco_ble.get("easytag")
+    picksmart_backend = zhsunyco_ble.get("picksmart")
+
+    # 1. WOLINK Advertisement
+    info_wolink = MagicMock()
+    info_wolink.manufacturer_data = {WOLINK_MFR_ID: b"\x00" * 10}
+    info_wolink.service_uuids = [WOLINK_SERVICE_UUID]
+    info_wolink.name = "WOLINK_TAG"
+
+    assert wolink_backend.supported(info_wolink) is True
+    assert easytag_backend.supported(info_wolink) is False
+    assert picksmart_backend.supported(info_wolink) is False
+    assert zhsunyco_ble.detect(info_wolink) is wolink_backend
+
+    # 2. easyTag Advertisement
+    info_easytag = MagicMock()
+    info_easytag.manufacturer_data = {}
+    info_easytag.service_uuids = [EASYTAG_SERVICE_UUID]
+    info_easytag.name = "easyTag3D:00:11:22"
+
+    assert easytag_backend.supported(info_easytag) is True
+    assert wolink_backend.supported(info_easytag) is False
+    assert picksmart_backend.supported(info_easytag) is False
+    assert zhsunyco_ble.detect(info_easytag) is easytag_backend
+
+    # 3. PickSmart Advertisement
+    info_picksmart = MagicMock()
+    info_picksmart.manufacturer_data = {PICKSMART_MFR_ID: b"\x33\x1E\x81\x01\x40"}
+    info_picksmart.service_uuids = [PICKSMART_SERVICE_UUIDS[0]]
+    info_picksmart.name = "BleTag"
+
+    assert picksmart_backend.supported(info_picksmart) is True
+    assert wolink_backend.supported(info_picksmart) is False
+    assert easytag_backend.supported(info_picksmart) is False
+    assert zhsunyco_ble.detect(info_picksmart) is picksmart_backend
+
+    # 4. Unknown Advertisement
+    info_other = MagicMock()
+    info_other.manufacturer_data = {0x9999: b"\x00"}
+    info_other.service_uuids = ["0000ffff-0000-1000-8000-00805f9b34fb"]
+    info_other.name = "OtherDevice"
+
+    assert zhsunyco_ble.detect(info_other) is None
+
+
+def test_registry_custom_backend(monkeypatch):
+    """Verify registering a new protocol backend dynamically."""
+    monkeypatch.setattr(zhsunyco_ble, "_BACKENDS", dict(zhsunyco_ble._BACKENDS))
+
+    class MockTestBackend(BleBackend):
+        id = "mock_test"
+        name = "Mock Protocol"
+        capabilities = Capabilities(
+            passive_battery=False,
+            session_battery=True,
+            session_temperature=True,
+            model_detection=False,
+            palettes=("BW",),
+        )
+
+        def presets(self):
+            return {}
+
+        def supported(self, service_info):
+            return "mock_uuid" in service_info.service_uuids
+
+        def create_parser(self, preset=None):
+            return MagicMock()
+
+        def parse_advertisement(self, service_info):
+            return None
+
+        async def write_image(
+            self, ble_device, preset, image, *, attempt=1, write_delay_ms=0
+        ):
+            return MagicMock()
+
+    mock_backend = MockTestBackend()
+    zhsunyco_ble.register(mock_backend)
+
+    assert zhsunyco_ble.get("mock_test") is mock_backend
+    info = MagicMock()
+    info.name = "Mock"
+    info.manufacturer_data = {}
+    info.service_uuids = ["mock_uuid"]
+    assert zhsunyco_ble.detect(info) is mock_backend
