@@ -2,10 +2,19 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from homeassistant.components.bluetooth.passive_update_processor import (
     PassiveBluetoothEntityKey,
 )
+from homeassistant.helpers.device_registry import CONNECTION_BLUETOOTH, DeviceInfo
 from sensor_state_data import DeviceKey
+
+from .const import DOMAIN
+from .zhsunyco_ble.base import DevicePreset
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 
 
 def device_key_to_bluetooth_entity_key(
@@ -13,3 +22,54 @@ def device_key_to_bluetooth_entity_key(
 ) -> PassiveBluetoothEntityKey:
     """Convert a device key to an entity key."""
     return PassiveBluetoothEntityKey(device_key.key, device_key.device_id)
+
+
+PROTOCOL_LABELS = {
+    "wolink": "WOLINK",
+    "picksmart": "PickSmart",
+    "easytag": "easyTag",
+}
+
+
+def format_model_name(preset: DevicePreset | None) -> str | None:
+    """Format model name with resolution."""
+    if preset is None:
+        return None
+    res = f"{preset.width}x{preset.height}"
+    if res in preset.display_name:
+        return preset.display_name
+    return f"{preset.display_name} {res}"
+
+
+def async_get_device_info(
+    hass: HomeAssistant,
+    entry_id: str,
+    address: str,
+) -> DeviceInfo:
+    """Get DeviceInfo for a Zhsunyco BLE device."""
+    identifier = address.replace(":", "")[-8:]
+    entry_data = hass.data.get(DOMAIN, {}).get(entry_id, {})
+    backend = entry_data.get("backend")
+    preset = entry_data.get("preset")
+
+    protocol_name = None
+    if backend:
+        protocol_name = PROTOCOL_LABELS.get(
+            getattr(backend, "id", ""),
+            getattr(backend, "name", str(backend)),
+        )
+
+    manufacturer = (
+        entry_data.get("manufacturer")
+        or (f"Zhsunyco ({protocol_name})" if protocol_name else "Zhsunyco")
+    )
+    model = entry_data.get("model") or format_model_name(preset)
+
+    return DeviceInfo(
+        connections={(CONNECTION_BLUETOOTH, address)},
+        name=f"Zhsunyco {identifier}",
+        manufacturer=manufacturer,
+        model=model,
+        sw_version=entry_data.get("sw_version"),
+        hw_version=entry_data.get("hw_version"),
+    )

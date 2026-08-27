@@ -60,22 +60,24 @@ class PickSmartBluetoothDeviceData(ProtocolParser):
 
     def supported(self, data: BluetoothServiceInfoBleak) -> bool:
         """Return True if this advertisement is from a PickSmart device."""
-        if not super().supported(data):
-            return False
         return is_picksmart_advertisement(data)
 
     def _update_device_info(self, service_info: BluetoothServiceInfoBleak) -> None:
         identifier = service_info.address.replace(":", "")[-8:]
         display_name = self.preset.display_name if self.preset else "PickSmart"
-        res = f" {self.preset.width}x{self.preset.height}" if self.preset else ""
+        res = (
+            f" {self.preset.width}x{self.preset.height}"
+            if self.preset and f"{self.preset.width}x{self.preset.height}" not in display_name
+            else ""
+        )
         self.set_title(f"{identifier} ({display_name})")
         self.set_device_name(f"Zhsunyco {identifier}")
         self.set_device_type(f"{display_name}{res}")
-        self.set_device_manufacturer("Zhsunyco")
+        self.set_device_manufacturer("Zhsunyco (PickSmart)")
 
     def _start_update(self, service_info: BluetoothServiceInfoBleak) -> None:
         """Update from BLE advertisement data."""
-        if not self.supported(service_info):
+        if not is_picksmart_advertisement(service_info):
             return
         self.last_service_info = service_info
         self._update_device_info(service_info)

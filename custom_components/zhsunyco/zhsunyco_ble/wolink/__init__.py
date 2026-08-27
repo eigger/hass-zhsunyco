@@ -12,9 +12,9 @@ from ..base import (
     DevicePreset,
     WriteResult,
 )
-from .const import MANUFACTURER_ID, SERVICE_UUID
+from .const import MANUFACTURER_ID
 from .devices import PRESETS, preset_choices
-from .parser import WolinkBluetoothDeviceData
+from .parser import WolinkBluetoothDeviceData, is_wolink_advertisement
 from .protocol import parse_manufacturer_data
 from .writer import update_image
 
@@ -22,15 +22,6 @@ if TYPE_CHECKING:
     from bleak.backends.device import BLEDevice
     from home_assistant_bluetooth import BluetoothServiceInfoBleak
     from PIL import Image
-
-
-def is_wolink_advertisement(service_info: BluetoothServiceInfoBleak) -> bool:
-    """Check if advertisement matches WOLINK manufacturer data or service UUID."""
-    if MANUFACTURER_ID in service_info.manufacturer_data:
-        return True
-    return SERVICE_UUID.lower() in {
-        u.lower() for u in service_info.service_uuids
-    }
 
 
 class WolinkBleBackend(BleBackend):

@@ -17,6 +17,13 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
+def is_wolink_advertisement(data: BluetoothServiceInfoBleak) -> bool:
+    """Return True if advertisement matches WOLINK manufacturer data or service UUID."""
+    if MANUFACTURER_ID in data.manufacturer_data:
+        return True
+    return SERVICE_UUID.lower() in {u.lower() for u in data.service_uuids}
+
+
 class WolinkBluetoothDeviceData(ProtocolParser):
     """Data parser for WOLINK Bluetooth ESL devices."""
 
@@ -33,24 +40,24 @@ class WolinkBluetoothDeviceData(ProtocolParser):
 
     def supported(self, data: BluetoothServiceInfoBleak) -> bool:
         """Return True if this advertisement is from a WOLINK device."""
-        if not super().supported(data):
-            return False
-        if MANUFACTURER_ID in data.manufacturer_data:
-            return True
-        return SERVICE_UUID.lower() in {u.lower() for u in data.service_uuids}
+        return is_wolink_advertisement(data)
 
     def _update_device_info(self, service_info: BluetoothServiceInfoBleak) -> None:
         identifier = service_info.address.replace(":", "")[-8:]
         display_name = self.preset.display_name if self.preset else "WOLINK"
-        res = f" {self.preset.width}x{self.preset.height}" if self.preset else ""
+        res = (
+            f" {self.preset.width}x{self.preset.height}"
+            if self.preset and f"{self.preset.width}x{self.preset.height}" not in display_name
+            else ""
+        )
         self.set_title(f"{identifier} ({display_name})")
         self.set_device_name(f"Zhsunyco {identifier}")
         self.set_device_type(f"{display_name}{res}")
-        self.set_device_manufacturer("Zhsunyco")
+        self.set_device_manufacturer("Zhsunyco (WOLINK)")
 
     def _start_update(self, service_info: BluetoothServiceInfoBleak) -> None:
         """Update from BLE advertisement data."""
-        if not self.supported(service_info):
+        if not is_wolink_advertisement(service_info):
             return
         self.last_service_info = service_info
         self._update_device_info(service_info)

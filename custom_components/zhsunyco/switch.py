@@ -6,12 +6,13 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import CONNECTION_BLUETOOTH, DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from propcache.api import cached_property
 
 from .const import DOMAIN, WRITE_LOCK
+from .device import async_get_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,11 +45,7 @@ class ZhsunycoWriteLockSwitch(RestoreEntity, SwitchEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            connections={(CONNECTION_BLUETOOTH, self._address)},
-            name=f"Zhsunyco {self._identifier}",
-            manufacturer="Zhsunyco",
-        )
+        return async_get_device_info(self._hass, self._entry_id, self._address)
 
     @cached_property
     def available(self) -> bool:
