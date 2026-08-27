@@ -24,7 +24,7 @@ PRESETS: dict[str, DevicePreset] = {
     ),
     "0x000B": DevicePreset(
         key="0x000B",
-        display_name="2.1\" EPD BWR 212x104",
+        display_name="2.1\" EPD BWR",
         width=212,
         height=104,
         colors="BWR",
@@ -38,7 +38,7 @@ PRESETS: dict[str, DevicePreset] = {
     ),
     "0x010B": DevicePreset(
         key="0x010B",
-        display_name="2.1\" EPD BWR 250x128",
+        display_name="2.1\" EPD BWR",
         width=250,
         height=128,
         colors="BWR",
