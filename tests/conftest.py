@@ -22,6 +22,14 @@ class MockEntity(MockBase):
     def unique_id(self) -> str | None:
         return getattr(self, "_attr_unique_id", None)
 
+    @property
+    def entity_category(self):
+        return getattr(self, "_attr_entity_category", None)
+
+    @property
+    def device_class(self):
+        return getattr(self, "_attr_device_class", None)
+
 
 class MockCoordinatorEntity(MockEntity):
     def __init__(self, coordinator=None, *args, **kwargs):
@@ -97,7 +105,8 @@ class MockBluetoothData:
         self._sensor_values = {}
 
     def supported(self, data) -> bool:
-        return True
+        self._start_update(data)
+        return bool(self._device_type)
 
     def set_title(self, title: str) -> None:
         self.title = title
@@ -237,7 +246,7 @@ sys.modules["homeassistant.helpers"] = ha_helpers
 ha.helpers = ha_helpers
 
 ha_dr = MockModule("homeassistant.helpers.device_registry")
-ha_dr.DeviceInfo = MockBase
+ha_dr.DeviceInfo = dict
 ha_dr.CONNECTION_BLUETOOTH = "bluetooth"
 sys.modules["homeassistant.helpers.device_registry"] = ha_dr
 ha_helpers.device_registry = ha_dr
@@ -256,6 +265,11 @@ ha_helpers_selector = MockModule("homeassistant.helpers.selector")
 ha_helpers_selector.SelectOptionDict = dict
 sys.modules["homeassistant.helpers.selector"] = ha_helpers_selector
 ha_helpers.selector = ha_helpers_selector
+
+ha_helpers_entity = MockModule("homeassistant.helpers.entity")
+ha_helpers_entity.EntityCategory = ha_const.EntityCategory
+sys.modules["homeassistant.helpers.entity"] = ha_helpers_entity
+ha_helpers.entity = ha_helpers_entity
 
 ha_helpers_entity_platform = MockModule("homeassistant.helpers.entity_platform")
 sys.modules["homeassistant.helpers.entity_platform"] = ha_helpers_entity_platform

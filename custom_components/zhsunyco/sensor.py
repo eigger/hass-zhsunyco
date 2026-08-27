@@ -28,7 +28,7 @@ from homeassistant.const import (
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import CONNECTION_BLUETOOTH, DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.sensor import sensor_device_info_to_hass_device_info
 from homeassistant.helpers.update_coordinator import (
@@ -45,7 +45,7 @@ from sensor_state_data import (
 
 from .const import DOMAIN
 from .coordinator import ZhsunycoPassiveBluetoothDataProcessor
-from .device import device_key_to_bluetooth_entity_key
+from .device import async_get_device_info, device_key_to_bluetooth_entity_key
 from .types import ZhsunycoConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
@@ -238,6 +238,8 @@ class ZhsunycoBatteryPercentageSensorEntity(
         coordinator: DataUpdateCoordinator[float | None],
     ) -> None:
         super().__init__(coordinator)
+        self.hass = hass
+        self._entry_id = entry.entry_id
         address = hass.data[DOMAIN][entry.entry_id]["address"]
         self._address = address
         self._identifier = address.replace(":", "")[-8:]
@@ -255,11 +257,7 @@ class ZhsunycoBatteryPercentageSensorEntity(
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            connections={(CONNECTION_BLUETOOTH, self._address)},
-            name=f"Zhsunyco {self._identifier}",
-            manufacturer="Zhsunyco",
-        )
+        return async_get_device_info(self.hass, self._entry_id, self._address)
 
     @cached_property
     def available(self) -> bool:
@@ -286,6 +284,8 @@ class ZhsunycoBatteryVoltageSensorEntity(
         coordinator: DataUpdateCoordinator[float | None],
     ) -> None:
         super().__init__(coordinator)
+        self.hass = hass
+        self._entry_id = entry.entry_id
         address = hass.data[DOMAIN][entry.entry_id]["address"]
         self._address = address
         self._identifier = address.replace(":", "")[-8:]
@@ -297,11 +297,7 @@ class ZhsunycoBatteryVoltageSensorEntity(
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            connections={(CONNECTION_BLUETOOTH, self._address)},
-            name=f"Zhsunyco {self._identifier}",
-            manufacturer="Zhsunyco",
-        )
+        return async_get_device_info(self.hass, self._entry_id, self._address)
 
     @cached_property
     def available(self) -> bool:
@@ -328,6 +324,8 @@ class ZhsunycoTemperatureSensorEntity(
         coordinator: DataUpdateCoordinator[int | None],
     ) -> None:
         super().__init__(coordinator)
+        self.hass = hass
+        self._entry_id = entry.entry_id
         address = hass.data[DOMAIN][entry.entry_id]["address"]
         self._address = address
         self._identifier = address.replace(":", "")[-8:]
@@ -339,11 +337,7 @@ class ZhsunycoTemperatureSensorEntity(
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            connections={(CONNECTION_BLUETOOTH, self._address)},
-            name=f"Zhsunyco {self._identifier}",
-            manufacturer="Zhsunyco",
-        )
+        return async_get_device_info(self.hass, self._entry_id, self._address)
 
     @cached_property
     def available(self) -> bool:
@@ -370,6 +364,8 @@ class ZhsunycoDurationSensorEntity(
         coordinator: DataUpdateCoordinator[float],
     ) -> None:
         super().__init__(coordinator)
+        self.hass = hass
+        self._entry_id = entry.entry_id
         address = hass.data[DOMAIN][entry.entry_id]["address"]
         self._address = address
         self._identifier = address.replace(":", "")[-8:]
@@ -382,11 +378,7 @@ class ZhsunycoDurationSensorEntity(
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            connections={(CONNECTION_BLUETOOTH, self._address)},
-            name=f"Zhsunyco {self._identifier}",
-            manufacturer="Zhsunyco",
-        )
+        return async_get_device_info(self.hass, self._entry_id, self._address)
 
     @cached_property
     def available(self) -> bool:
@@ -422,6 +414,8 @@ class ZhsunycoFailureCountSensorEntity(
         coordinator: DataUpdateCoordinator[int],
     ) -> None:
         super().__init__(coordinator)
+        self.hass = hass
+        self._entry_id = entry.entry_id
         address = hass.data[DOMAIN][entry.entry_id]["address"]
         self._address = address
         self._identifier = address.replace(":", "")[-8:]
@@ -433,11 +427,7 @@ class ZhsunycoFailureCountSensorEntity(
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            connections={(CONNECTION_BLUETOOTH, self._address)},
-            name=f"Zhsunyco {self._identifier}",
-            manufacturer="Zhsunyco",
-        )
+        return async_get_device_info(self.hass, self._entry_id, self._address)
 
     @cached_property
     def available(self) -> bool:
@@ -463,6 +453,8 @@ class ZhsunycoLastFailureTimeSensorEntity(
         coordinator: DataUpdateCoordinator[datetime | None],
     ) -> None:
         super().__init__(coordinator)
+        self.hass = hass
+        self._entry_id = entry.entry_id
         address = hass.data[DOMAIN][entry.entry_id]["address"]
         self._address = address
         self._identifier = address.replace(":", "")[-8:]
@@ -474,11 +466,7 @@ class ZhsunycoLastFailureTimeSensorEntity(
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            connections={(CONNECTION_BLUETOOTH, self._address)},
-            name=f"Zhsunyco {self._identifier}",
-            manufacturer="Zhsunyco",
-        )
+        return async_get_device_info(self.hass, self._entry_id, self._address)
 
     @cached_property
     def available(self) -> bool:

@@ -49,6 +49,7 @@ from .const import (
     WRITE_LOCK,
 )
 from .coordinator import ZhsunycoPassiveBluetoothProcessorCoordinator
+from .device import PROTOCOL_LABELS, format_model_name
 from .renderer import render_image
 from .types import ZhsunycoConfigEntry
 
@@ -85,6 +86,34 @@ def process_service_info(
                 entry_data["preset"] = refined_preset
                 data.set_preset(refined_preset)
 
+                protocol_name = PROTOCOL_LABELS.get(
+                    getattr(backend, "id", ""),
+                    getattr(backend, "name", "BLE"),
+                )
+                manufacturer = f"Zhsunyco ({protocol_name})"
+                model = format_model_name(refined_preset)
+
+                device_id = entry_data.get("device_id")
+                if device_id:
+                    update_kwargs: dict[str, Any] = {}
+                    if adv_info.sw_version and adv_info.sw_version != entry_data.get("sw_version"):
+                        entry_data["sw_version"] = adv_info.sw_version
+                        update_kwargs["sw_version"] = adv_info.sw_version
+                    if adv_info.hw_version and adv_info.hw_version != entry_data.get("hw_version"):
+                        entry_data["hw_version"] = adv_info.hw_version
+                        update_kwargs["hw_version"] = adv_info.hw_version
+                    if model != entry_data.get("model"):
+                        entry_data["model"] = model
+                        update_kwargs["model"] = model
+                    if manufacturer != entry_data.get("manufacturer"):
+                        entry_data["manufacturer"] = manufacturer
+                        update_kwargs["manufacturer"] = manufacturer
+                    if update_kwargs:
+                        device_registry.async_update_device(
+                            device_id,
+                            **update_kwargs,
+                        )
+
     return update
 
 
@@ -106,18 +135,34 @@ async def async_setup_entry(
     if preset is None:
         preset = next(iter(backend.presets().values()))
 
+    adv_info = None
     service_info = async_last_service_info(hass, address, connectable=True)
     if service_info:
         adv_info = backend.parse_advertisement(service_info)
         preset = backend.refine_preset(preset, adv_info)
 
     data = backend.create_parser(preset=preset)
+    if service_info:
+        data.update(service_info)
+
+    sw_version = adv_info.sw_version if adv_info else None
+    hw_version = adv_info.hw_version if adv_info else None
+    protocol_name = PROTOCOL_LABELS.get(
+        getattr(backend, "id", ""),
+        getattr(backend, "name", "BLE"),
+    )
+    manufacturer = f"Zhsunyco ({protocol_name})"
+    model = format_model_name(preset)
 
     hass.data[DOMAIN][entry.entry_id] = {}
     hass.data[DOMAIN][entry.entry_id]["address"] = address
     hass.data[DOMAIN][entry.entry_id]["data"] = data
     hass.data[DOMAIN][entry.entry_id]["backend"] = backend
     hass.data[DOMAIN][entry.entry_id]["preset"] = preset
+    hass.data[DOMAIN][entry.entry_id]["sw_version"] = sw_version
+    hass.data[DOMAIN][entry.entry_id]["hw_version"] = hw_version
+    hass.data[DOMAIN][entry.entry_id]["model"] = model
+    hass.data[DOMAIN][entry.entry_id]["manufacturer"] = manufacturer
 
     if LOCK not in hass.data[DOMAIN]:
         hass.data[DOMAIN][LOCK] = Lock()
@@ -127,8 +172,11 @@ async def async_setup_entry(
     device_entry = device_registry.async_get_or_create(
         config_entry_id=entry.entry_id,
         connections={(CONNECTION_BLUETOOTH, address)},
-        manufacturer="Zhsunyco",
+        manufacturer=manufacturer,
         name=f"Zhsunyco {_identifier}",
+        model=model,
+        sw_version=sw_version,
+        hw_version=hw_version,
     )
     hass.data[DOMAIN][entry.entry_id]["device_id"] = device_entry.id
     bt_coordinator = ZhsunycoPassiveBluetoothProcessorCoordinator(

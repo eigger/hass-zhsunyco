@@ -10,7 +10,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import CONNECTION_BLUETOOTH, DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import (
@@ -20,6 +20,7 @@ from homeassistant.helpers.update_coordinator import (
 from propcache.api import cached_property
 
 from .const import DOMAIN
+from .device import async_get_device_info
 from .types import ZhsunycoConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,9 +50,12 @@ class ZhsunycoBluetoothConnectivitySensorEntity(
     _attr_has_entity_name = True
     _attr_translation_key = "connectivity"
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, coordinator: DataUpdateCoordinator[bool]):
         super().__init__(coordinator)
+        self.hass = hass
+        self._entry_id = entry.entry_id
         address = hass.data[DOMAIN][entry.entry_id]["address"]
         self._address = address
         self._identifier = address.replace(":", "")[-8:]
@@ -65,11 +69,7 @@ class ZhsunycoBluetoothConnectivitySensorEntity(
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            connections={(CONNECTION_BLUETOOTH, self._address)},
-            name=f"Zhsunyco {self._identifier}",
-            manufacturer="Zhsunyco",
-        )
+        return async_get_device_info(self.hass, self._entry_id, self._address)
 
     @cached_property
     def available(self) -> bool:
@@ -107,6 +107,8 @@ class ZhsunycoDisplayInSyncBinarySensor(
         preview_coordinator: DataUpdateCoordinator[bytes | None],
     ):
         super().__init__(image_coordinator)
+        self.hass = hass
+        self._entry_id = entry.entry_id
         self._preview_coordinator = preview_coordinator
         address = hass.data[DOMAIN][entry.entry_id]["address"]
         self._address = address
@@ -123,11 +125,7 @@ class ZhsunycoDisplayInSyncBinarySensor(
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            connections={(CONNECTION_BLUETOOTH, self._address)},
-            name=f"Zhsunyco {self._identifier}",
-            manufacturer="Zhsunyco",
-        )
+        return async_get_device_info(self.hass, self._entry_id, self._address)
 
     @cached_property
     def available(self) -> bool:

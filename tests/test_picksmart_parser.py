@@ -73,7 +73,7 @@ def test_picksmart_parser_device_info_and_battery():
 
     parser._start_update(info)
 
-    assert parser.title == "CCDDEEFF (2.9\" EPD BWR (0x0033))"
+    assert parser.title == "CCDDEEFF (2.9\" EPD BWR)"
     assert parser.get_device_name() == "Zhsunyco CCDDEEFF"
     assert parser._sensor_values[SensorLibrary.VOLTAGE__ELECTRIC_POTENTIAL_VOLT] == 2.6
     # (2.6 - 2.2) * 100 / (3.0 - 2.2) = 50.0%

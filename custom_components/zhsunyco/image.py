@@ -7,7 +7,7 @@ import logging
 from homeassistant.components.image import Image, ImageEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import CONNECTION_BLUETOOTH, DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import (
@@ -18,6 +18,7 @@ from homeassistant.util import dt as dt_util
 from propcache.api import cached_property
 
 from .const import DOMAIN
+from .device import async_get_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,6 +46,8 @@ class ZhsunycoImageEntity(CoordinatorEntity[DataUpdateCoordinator[bytes]], Image
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, coordinator: DataUpdateCoordinator[bytes]):
         CoordinatorEntity.__init__(self, coordinator)
         ImageEntity.__init__(self, hass)
+        self.hass = hass
+        self._entry_id = entry.entry_id
         address = hass.data[DOMAIN][entry.entry_id]["address"]
         self._address = address
         self._identifier = address.replace(":", "")[-8:]
@@ -54,11 +57,7 @@ class ZhsunycoImageEntity(CoordinatorEntity[DataUpdateCoordinator[bytes]], Image
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            connections={(CONNECTION_BLUETOOTH, self._address)},
-            name=f"Zhsunyco {self._identifier}",
-            manufacturer="Zhsunyco",
-        )
+        return async_get_device_info(self.hass, self._entry_id, self._address)
 
     @cached_property
     def available(self) -> bool:
@@ -93,6 +92,8 @@ class ZhsunycoPreviewImageEntity(CoordinatorEntity[DataUpdateCoordinator[bytes]]
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, coordinator: DataUpdateCoordinator[bytes]):
         CoordinatorEntity.__init__(self, coordinator)
         ImageEntity.__init__(self, hass)
+        self.hass = hass
+        self._entry_id = entry.entry_id
         address = hass.data[DOMAIN][entry.entry_id]["address"]
         self._address = address
         self._identifier = address.replace(":", "")[-8:]
@@ -102,11 +103,7 @@ class ZhsunycoPreviewImageEntity(CoordinatorEntity[DataUpdateCoordinator[bytes]]
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            connections={(CONNECTION_BLUETOOTH, self._address)},
-            name=f"Zhsunyco {self._identifier}",
-            manufacturer="Zhsunyco",
-        )
+        return async_get_device_info(self.hass, self._entry_id, self._address)
 
     @cached_property
     def available(self) -> bool:

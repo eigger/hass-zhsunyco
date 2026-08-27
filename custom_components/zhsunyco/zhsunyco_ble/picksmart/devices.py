@@ -9,7 +9,7 @@ from ..base import CONFIDENCE_HARDWARE, DevicePreset
 PRESETS: dict[str, DevicePreset] = {
     "0x00A0": DevicePreset(
         key="0x00A0",
-        display_name="2.1\" TFT BW (0x00A0)",
+        display_name="2.1\" TFT BW",
         width=250,
         height=132,
         colors="BW",
@@ -24,7 +24,7 @@ PRESETS: dict[str, DevicePreset] = {
     ),
     "0x000B": DevicePreset(
         key="0x000B",
-        display_name="2.1\" EPD BWR 212x104 (0x000B)",
+        display_name="2.1\" EPD BWR 212x104",
         width=212,
         height=104,
         colors="BWR",
@@ -38,7 +38,7 @@ PRESETS: dict[str, DevicePreset] = {
     ),
     "0x010B": DevicePreset(
         key="0x010B",
-        display_name="2.1\" EPD BWR 250x128 (0x010B)",
+        display_name="2.1\" EPD BWR 250x128",
         width=250,
         height=128,
         colors="BWR",
@@ -52,7 +52,7 @@ PRESETS: dict[str, DevicePreset] = {
     ),
     "0x0028": DevicePreset(
         key="0x0028",
-        display_name="2.9\" EPD BW (0x0028)",
+        display_name="2.9\" EPD BW",
         width=296,
         height=128,
         colors="BW",
@@ -65,7 +65,7 @@ PRESETS: dict[str, DevicePreset] = {
     ),
     "0x0033": DevicePreset(
         key="0x0033",
-        display_name="2.9\" EPD BWR (0x0033)",
+        display_name="2.9\" EPD BWR",
         width=296,
         height=128,
         colors="BWR",
@@ -78,7 +78,7 @@ PRESETS: dict[str, DevicePreset] = {
     ),
     "0x002E": DevicePreset(
         key="0x002E",
-        display_name="2.9\" EPD BWRY (0x002E)",
+        display_name="2.9\" EPD BWRY",
         width=296,
         height=128,
         colors="BWRY",
@@ -92,7 +92,7 @@ PRESETS: dict[str, DevicePreset] = {
     ),
     "0x022B": DevicePreset(
         key="0x022B",
-        display_name="3.7\" EPD BWR (0x022B)",
+        display_name="3.7\" EPD BWR",
         width=240,
         height=416,
         colors="BWR",
@@ -107,7 +107,7 @@ PRESETS: dict[str, DevicePreset] = {
     ),
     "0x004B": DevicePreset(
         key="0x004B",
-        display_name="4.2\" EPD BWR (0x004B)",
+        display_name="4.2\" EPD BWR",
         width=400,
         height=300,
         colors="BWR",
@@ -119,7 +119,7 @@ PRESETS: dict[str, DevicePreset] = {
     ),
     "0x004E": DevicePreset(
         key="0x004E",
-        display_name="4.2\" EPD BWRY (0x004E)",
+        display_name="4.2\" EPD BWRY",
         width=400,
         height=300,
         colors="BWRY",
@@ -132,7 +132,7 @@ PRESETS: dict[str, DevicePreset] = {
     ),
     "0x012B": DevicePreset(
         key="0x012B",
-        display_name="7.5\" EPD BWR (0x012B)",
+        display_name="7.5\" EPD BWR",
         width=800,
         height=480,
         colors="BWR",
@@ -147,7 +147,7 @@ PRESETS: dict[str, DevicePreset] = {
     ),
     "0x008B": DevicePreset(
         key="0x008B",
-        display_name="10.2\" EPD BWR (0x008B)",
+        display_name="10.2\" EPD BWR",
         width=960,
         height=640,
         colors="BWR",
